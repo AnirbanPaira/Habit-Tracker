@@ -1,29 +1,24 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
-import { 
-  View, 
-  Modal, 
-  TouchableOpacity, 
-  Image, 
-  Dimensions, 
+import {
+  Dimensions,
+  Image,
+  Modal,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
-  runOnJS,
-  FadeIn,
   FadeInUp,
-  FadeInDown,
-  SlideInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
 import { Ionicons } from '@expo/vector-icons';

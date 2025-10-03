@@ -2,18 +2,18 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <View style={{ flex: 1 }}>
-      <Header />
+      <Header/>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -25,14 +25,21 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Home',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons size={28} name="home-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="reminder"
+          options={{
+            title: 'Reminder',
+            tabBarIcon: ({ color }) => <Ionicons size={28} name="alarm-outline" color={color} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
             title: 'Settings',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear" color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons size={28} name="settings" color={color} />,
           }}
         />
       </Tabs>
