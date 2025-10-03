@@ -8,6 +8,8 @@ export interface Theme {
         surface: string;
         textDark: string;
         textLight: string;
+        success: string;
+        error: string;
     };
 }
 
@@ -22,6 +24,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#0f172a",   // slate-900
             textLight: "#e2e8f0",  // slate-200
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     forestGreen: {
@@ -34,6 +38,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#064e3b",   // green-900
             textLight: "#d1fae5",  // green-100
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     sunsetOrange: {
@@ -46,6 +52,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#1c1917",   // stone-900
             textLight: "#fef3c7",  // amber-100
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     purpleGalaxy: {
@@ -58,6 +66,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#1e1b4b",   // indigo-900
             textLight: "#ede9fe",  // violet-100
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     darkMode: {
@@ -70,6 +80,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#1e293b",    // slate-800
             textDark: "#f1f5f9",   // slate-200
             textLight: "#94a3b8",  // slate-400
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     oceanBreeze: {
@@ -82,6 +94,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#0c4a6e",   // sky-900
             textLight: "#bae6fd",  // sky-200
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     roseBlush: {
@@ -94,6 +108,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#881337",   // rose-900
             textLight: "#fecdd3",  // rose-200
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     goldenSands: {
@@ -106,6 +122,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#78350f",   // amber-900
             textLight: "#fde68a",  // amber-200
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     charcoalGray: {
@@ -118,6 +136,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#111827",   // gray-900
             textLight: "#d1d5db",  // gray-300
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
     mintFresh: {
@@ -130,7 +150,8 @@ export const themes: { [key: string]: Theme } = {
             surface: "#ffffff",
             textDark: "#064e3b",   // emerald-900
             textLight: "#a7f3d0",  // emerald-200
+            success: "#22c55e",    // green-500
+            error: "#ef4444"       // red-500
         },
     },
-
 };

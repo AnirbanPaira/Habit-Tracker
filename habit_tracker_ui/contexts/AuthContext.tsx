@@ -5,6 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  profileImage?: string;
 }
 
 interface AuthContextType {
@@ -51,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://192.168.1.35:5000/api/auth/login', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      const response = await fetch('http://192.168.1.35:5000/api/auth/signup', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       if (token) {
-        await fetch('http://192.168.1.35:5000/api/auth/signout', {
+        await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

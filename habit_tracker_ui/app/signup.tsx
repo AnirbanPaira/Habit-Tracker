@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { useGoogleAuth } from '@/utils/googleAuth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -410,8 +411,37 @@ export default function SignUpScreen() {
     }
   };
 
+  const { signInWithGoogle, isLoading: isGoogleAuthLoading } = useGoogleAuth();
+  
   const handleLogin = () => {
     router.push('/login');
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithGoogle();
+      if (result.success && result.token) {
+        // Here you would typically send the token to your backend
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Successfully signed in with Google'
+        });
+        router.replace('/(tabs)');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: result.error || 'Google sign in failed'
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message || 'Failed to sign in with Google'
+      });
+    }
   };
 
   return (
@@ -597,17 +627,26 @@ export default function SignUpScreen() {
               </View>
 
               <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton}>
+                <TouchableOpacity 
+                  style={[styles.socialButton, isGoogleAuthLoading && { opacity: 0.7 }]}
+                  onPress={handleGoogleSignIn}
+                  disabled={isGoogleAuthLoading}
+                >
                   <View style={styles.socialIcon}>
-                    <Ionicons name="logo-google" size={16} color="white" />
+                    <Ionicons 
+                      name="logo-google" 
+                      size={16} 
+                      color="white"
+                    />
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton}>
+                {/* Placeholder buttons for future social login methods */}
+                <TouchableOpacity style={[styles.socialButton, { opacity: 0.5 }]} disabled>
                   <View style={styles.socialIcon}>
                     <Ionicons name="logo-github" size={16} color="white" />
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton}>
+                <TouchableOpacity style={[styles.socialButton, { opacity: 0.5 }]} disabled>
                   <View style={styles.socialIcon}>
                     <Ionicons name="logo-linkedin" size={16} color="white" />
                   </View>

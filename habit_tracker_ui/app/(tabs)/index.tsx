@@ -3,9 +3,9 @@ import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
-import { useRouter } from 'expo-router';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import React, { useEffect, useState } from 'react';
-import { FlatList, TextInput, TouchableOpacity, View, Alert } from 'react-native';
+import { FlatList, TextInput, TouchableOpacity, View, Modal, ScrollView } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 interface Habit {
@@ -17,15 +17,15 @@ interface Habit {
 }
 
 export default function HomeScreen() {
-  const { user, token, logout } = useAuth();
-  console.log('User in HomeScreen:', user);
+  const { user, token } = useAuth();
   const { theme } = useTheme();
-  const router = useRouter();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
   const [newHabitFrequency, setNewHabitFrequency] = useState('daily');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'todo' | 'completed'>('todo');
 
   useEffect(() => {
     fetchHabits();
@@ -34,7 +34,7 @@ export default function HomeScreen() {
   const fetchHabits = async () => {
     if (!token) return;
     try {
-      const response = await fetch('http://192.168.1.35:5000/api/habits', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/habits`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ export default function HomeScreen() {
     if (!token) return;
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.1.35:5000/api/habits', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/habits`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,6 +75,7 @@ export default function HomeScreen() {
         setHabits([...habits, data]);
         setNewHabitName('');
         setNewHabitDescription('');
+        setShowAddModal(false);
         Toast.show({ type: 'success', text1: 'Success', text2: 'Habit added!' });
       } else {
         Toast.show({ type: 'error', text1: 'Error', text2: data.message || 'Failed to add habit' });
@@ -89,7 +90,7 @@ export default function HomeScreen() {
   const toggleHabit = async (habit: Habit) => {
     if (!token) return;
     try {
-      const response = await fetch(`http://192.168.1.35:5000/api/habits/${habit._id}`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/habits/${habit._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ export default function HomeScreen() {
   const deleteHabit = async (habitId: string) => {
     if (!token) return;
     try {
-      const response = await fetch(`http://192.168.1.35:5000/api/habits/${habitId}`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/habits/${habitId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -131,187 +132,326 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
-  };
-
   const styles = useThemedStyles(theme => ({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      padding: 20,
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    welcome: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.textDark,
-    },
-    signOutButton: {
-      padding: 10,
-      backgroundColor: '#ff4444',
-      borderRadius: 8,
-    },
-    signOutText: {
-      color: 'white',
-      fontWeight: 'bold',
-    },
-    addHabitContainer: {
-      backgroundColor: theme.colors.surface,
       padding: 20,
-      borderRadius: 12,
-      marginBottom: 20,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      paddingBottom: 10,
     },
-    input: {
-      backgroundColor: theme.colors.background,
-      borderWidth: 1,
-      borderColor: theme.colors.textLight,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 10,
-      color: theme.colors.textDark,
-    },
-    addButton: {
-      backgroundColor: theme.colors.primary,
-      padding: 12,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    addButtonText: {
-      color: 'white',
+    title: {
+      fontSize: 32,
       fontWeight: 'bold',
+      color: theme.colors.textDark,
+      marginBottom: 5,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: theme.colors.textLight,
+    },
+    filterContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 20,
+      paddingVertical: 15,
+      gap: 10,
+    },
+    filterButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: theme.colors.surface,
+    },
+    filterButtonActive: {
+      backgroundColor: theme.colors.primary,
+    },
+    filterText: {
+      fontSize: 14,
+      color: theme.colors.textDark,
+      fontWeight: '500',
+    },
+    filterTextActive: {
+      color: '#FFFFFF',
+    },
+    listContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingBottom: 100,
+    },
+    emptyIcon: {
+      marginBottom: 20,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: theme.colors.textLight,
     },
     habitItem: {
       backgroundColor: theme.colors.surface,
       padding: 15,
       borderRadius: 12,
-      marginBottom: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: theme.colors.textLight,
+      marginRight: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkboxChecked: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    habitContent: {
+      flex: 1,
     },
     habitName: {
-      fontSize: 18,
-      fontWeight: 'bold',
+      fontSize: 16,
       color: theme.colors.textDark,
+      fontWeight: '500',
+    },
+    habitNameCompleted: {
+      textDecorationLine: 'line-through',
+      opacity: 0.5,
     },
     habitDescription: {
       fontSize: 14,
-      color: theme.colors.textDark,
-      opacity: 0.7,
-      marginTop: 5,
-    },
-    habitActions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 10,
-    },
-    toggleButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor: theme.colors.primary,
-    },
-    toggleText: {
-      color: 'white',
-      fontWeight: 'bold',
+      color: theme.colors.textLight,
+      marginTop: 2,
     },
     deleteButton: {
       padding: 8,
-      borderRadius: 8,
-      backgroundColor: '#ff4444',
     },
-    deleteText: {
-      color: 'white',
+    fab: {
+      position: 'absolute',
+      bottom: 80,
+      right: 20,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 40,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    modalTitle: {
+      fontSize: 24,
       fontWeight: 'bold',
+      color: theme.colors.textDark,
+    },
+    closeButton: {
+      padding: 5,
+    },
+    input: {
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.textLight,
+      borderRadius: 12,
+      padding: 15,
+      marginBottom: 15,
+      color: theme.colors.textDark,
+      fontSize: 16,
+    },
+    inputMultiline: {
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    addButton: {
+      backgroundColor: theme.colors.primary,
+      padding: 15,
+      borderRadius: 12,
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    addButtonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+    addButtonDisabled: {
+      opacity: 0.6,
     },
   }));
 
+  const filteredHabits = habits.filter(habit => {
+    if (filter === 'todo') return !habit.completed;
+    if (filter === 'completed') return habit.completed;
+    return true;
+  });
+
+  const completedCount = habits.filter(h => h.completed).length;
+
   const renderHabit = ({ item }: { item: Habit }) => (
-    <View style={styles.habitItem}>
-      <ThemedText style={styles.habitName}>{item.name}</ThemedText>
-      <ThemedText style={styles.habitDescription}>{item.description}</ThemedText>
-      <View style={styles.habitActions}>
-        <TouchableOpacity
-          style={styles.toggleButton}
-          onPress={() => toggleHabit(item)}
-        >
-          <ThemedText style={styles.toggleText}>
-            {item.completed ? 'Mark Incomplete' : 'Mark Complete'}
-          </ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteHabit(item._id)}
-        >
-          <ThemedText style={styles.deleteText}>Delete</ThemedText>
-        </TouchableOpacity>
+    <TouchableOpacity 
+      style={styles.habitItem}
+      onPress={() => toggleHabit(item)}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.checkbox, item.completed && styles.checkboxChecked]}>
+        {item.completed && (
+          <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
+        )}
       </View>
+      <View style={styles.habitContent}>
+        <ThemedText style={[styles.habitName, item.completed && styles.habitNameCompleted]}>
+          {item.name}
+        </ThemedText>
+        {item.description ? (
+          <ThemedText style={styles.habitDescription}>{item.description}</ThemedText>
+        ) : null}
+      </View>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => deleteHabit(item._id)}
+      >
+        <IconSymbol name="trash" size={20} color={theme.colors.textLight} />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIcon}>
+        <IconSymbol name="list.bullet" size={80} color={theme.colors.textLight} />
+      </View>
+      <ThemedText style={styles.emptyText}>Add Something</ThemedText>
     </View>
   );
 
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
-        <ThemedText style={styles.welcome}>Welcome, {user?.name}!</ThemedText>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <ThemedText style={styles.signOutText}>Sign Out</ThemedText>
-        </TouchableOpacity>
+        <ThemedText style={styles.title}>Tasks</ThemedText>
+        <ThemedText style={styles.subtitle}>{completedCount} completed</ThemedText>
       </View>
 
-      <View style={styles.addHabitContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Habit name"
-          placeholderTextColor={`${theme.colors.textDark}50`}
-          value={newHabitName}
-          onChangeText={setNewHabitName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Description (optional)"
-          placeholderTextColor={`${theme.colors.textDark}50`}
-          value={newHabitDescription}
-          onChangeText={setNewHabitDescription}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={addHabit} disabled={isLoading}>
-          <ThemedText style={styles.addButtonText}>
-            {isLoading ? 'Adding...' : 'Add Habit'}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'todo' && styles.filterButtonActive]}
+          onPress={() => setFilter('todo')}
+        >
+          <ThemedText style={[styles.filterText, filter === 'todo' && styles.filterTextActive]}>
+            To do
+          </ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+          onPress={() => setFilter('all')}
+        >
+          <ThemedText style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+            All
+          </ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'completed' && styles.filterButtonActive]}
+          onPress={() => setFilter('completed')}
+        >
+          <ThemedText style={[styles.filterText, filter === 'completed' && styles.filterTextActive]}>
+            Completed
           </ThemedText>
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={habits}
+        data={filteredHabits}
         keyExtractor={(item) => item._id}
         renderItem={renderHabit}
+        contentContainerStyle={[styles.listContainer, filteredHabits.length === 0 && { flex: 1 }]}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmpty}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowAddModal(true)}
+        activeOpacity={0.8}
+      >
+        <IconSymbol name="plus" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={showAddModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={{ flex: 1 }} 
+            activeOpacity={1} 
+            onPress={() => setShowAddModal(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>New Habit</ThemedText>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowAddModal(false)}
+              >
+                <IconSymbol name="xmark" size={24} color={theme.colors.textDark} />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Habit name"
+              placeholderTextColor={theme.colors.textLight}
+              value={newHabitName}
+              onChangeText={setNewHabitName}
+            />
+            <TextInput
+              style={[styles.input, styles.inputMultiline]}
+              placeholder="Description (optional)"
+              placeholderTextColor={theme.colors.textLight}
+              value={newHabitDescription}
+              onChangeText={setNewHabitDescription}
+              multiline
+            />
+            <TouchableOpacity 
+              style={[styles.addButton, isLoading && styles.addButtonDisabled]} 
+              onPress={addHabit} 
+              disabled={isLoading}
+            >
+              <ThemedText style={styles.addButtonText}>
+                {isLoading ? 'Adding...' : 'Add Habit'}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }

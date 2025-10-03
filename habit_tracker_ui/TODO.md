@@ -1,5 +1,0 @@
-- [x] Add Ionicons import to login.tsx
-- [x] Replace first social icon View with Google icon
-- [x] Replace second social icon View with GitHub icon
-- [x] Replace third social icon View with LinkedIn icon
-- [ ] Test the login screen UI
